@@ -7,7 +7,7 @@ from network import WLAN
 uart = UART(0, baudrate=115200)
 os.dupterm(uart)
 
-machine.main('main.py')
+machine.main('sender.py')
 
 # Disable Wi-Fi
 wlan = WLAN()
