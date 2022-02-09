@@ -9,6 +9,9 @@ import ujson
 ble_connected = False
 lora_connected = False
 
+# Data to recieve over BLE
+data_to_send = b''
+
 # LoRa directions
 myaddr = ""
 rcvraddr = ""
@@ -37,32 +40,44 @@ def connection_ble(bt_o):
     elif events & Bluetooth.CLIENT_DISCONNECTED:
         print("Sender: BLE disconnected")
         update_status(False)
-    
+
+def save_data_to_send(data):
+    global data_to_send
+    if (data != None):
+        data_to_send += data
+    else:
+        data_to_send = b''
+
 # Write image callback
-def send_image_ble(chr, data):
+def receive_image_ble(chr, data):
     events, value = data
     if  events & Bluetooth.CHAR_WRITE_EVENT:
         print("Sender: Write request with value = {}".format(value))
-        type(value)
-        t0 = time.time()
-        arr = bytearray(16384)
-        addr, quality, result = ctpc.sendit(rcvraddr, arr)
-        t1 = time.time()
-        timetosend = t1-t0
-        print (timetosend)
-        print("Sender: ACK from {} (time = {:.4f} seconds, quality = {}, result {})".format(addr, t1-t0, quality, result))
+        save_data_to_send(value)
 
-    else:
-        print('Read request on char 1')
+def send_image_lora(chr, data):
+    events, value = data
+    if  events & Bluetooth.CHAR_WRITE_EVENT:
+        print(value)
+        if value == b'send':
+            t0 = time.time()
+            addr, quality, result = ctpc.sendit(rcvraddr, data_to_send)
+            t1 = time.time()
+            timetosend = t1-t0
+            print("Sender: ACK from {} (time = {:.4f} seconds, quality = {}, result {})".format(addr, timetosend, quality, result))
+            save_data_to_send(None)
 
 bluetooth = Bluetooth()
 bluetooth.set_advertisement(name='LoPy-IMGoverLora', service_uuid=b'36c4919279684969')
 bluetooth.callback(trigger=Bluetooth.CLIENT_CONNECTED | Bluetooth.CLIENT_DISCONNECTED, handler=connection_ble)
 bluetooth.advertise(True)
 
-service = bluetooth.service(uuid=b'ce397c4d744e41ab', isprimary=True)
-char1 = service.characteristic(uuid=b'0242ac120002a8a3', value=5)
-char1_callback = char1.callback(trigger=Bluetooth.CHAR_WRITE_EVENT, handler=send_image_ble)
+service = bluetooth.service(uuid=b'ce397c4d744e41ab', isprimary=True, nbr_chars=2)
+char1 = service.characteristic(uuid=b'0242ac120002a8a3')
+char1_callback = char1.callback(trigger=Bluetooth.CHAR_WRITE_EVENT, handler=receive_image_ble)
+
+char2 = service.characteristic(uuid=b'0f18b91b2afc3e3d')
+char2_callback = char2.callback(trigger=Bluetooth.CHAR_WRITE_EVENT, handler=send_image_lora)
 
 # Enable garbage collector 
 gc.enable()
