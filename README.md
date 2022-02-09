@@ -15,7 +15,7 @@ This project allows to transfer images over a LoRa (pure LoRa, no LoRaWAN) chann
 10. Open the `receiver.py` file in the VSCode editor and select `Run` in the Pymakr bar
 11. **Repeat the process for the other Lopy** from the point 4 until the 9 and then select the `sender.py` file in the VSCode editor and select `Run` in the Pymakr bar
 12. All Lopy nodes are ready to work. If everything went well, you will have one terminal open for each Lopy node, and the light on the receiving node will be green ![#c5f015](https://via.placeholder.com/15/c5f015/000000?text=+) and the light on the sending node will be blue ![#1589F0](https://via.placeholder.com/15/1589F0/000000?text=+) (waiting for a BLE connection).
-13. Connect the Android application to the sender node and take the image and send it.
+13. Connect the Android application to the sender node and take the image and send it. The application is located in: https://github.com/cristiantrapero/imgoverlora-android
 
 # Files
 The repository is structured as follow:
